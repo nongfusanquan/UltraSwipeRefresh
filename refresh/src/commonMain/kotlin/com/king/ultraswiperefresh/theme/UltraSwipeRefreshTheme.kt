@@ -2,10 +2,7 @@ package com.king.ultraswiperefresh.theme
 
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -96,12 +93,3 @@ data class UltraSwipeRefreshConfig(
         NoOverscrollEffect(it)
     }
 )
-
-/**
- * 无过度滚动效果
- */
-@Composable
-@OptIn(ExperimentalFoundationApi::class)
-private fun NoOverscrollEffect(content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalOverscrollConfiguration provides null, content = content)
-}
