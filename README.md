@@ -1,5 +1,7 @@
 # UltraSwipeRefresh
 
+<font color="red">修改为支持cmp跨平台，其中lottie三方库改为kottie</font>
+
 [![MavenCentral](https://img.shields.io/maven-central/v/com.github.jenly1314.UltraSwipeRefresh/refresh?logo=sonatype)](https://repo1.maven.org/maven2/com/github/jenly1314/UltraSwipeRefresh)
 [![JitPack](https://img.shields.io/jitpack/v/github/jenly1314/UltraSwipeRefresh?logo=jitpack)](https://jitpack.io/#jenly1314/UltraSwipeRefresh)
 [![CI](https://img.shields.io/github/actions/workflow/status/jenly1314/UltraSwipeRefresh/build.yml?logo=github)](https://github.com/jenly1314/UltraSwipeRefresh/actions/workflows/build.yml)
@@ -42,7 +44,7 @@
     ```gradle
     // 极致体验的Compose刷新组件 (*必须)
     implementation 'com.github.jenly1314.UltraSwipeRefresh:refresh:1.5.0'
-
+    
     // 经典样式的指示器 (可选)
     implementation 'com.github.jenly1314.UltraSwipeRefresh:refresh-indicator-classic:1.5.0'
     // Lottie动画指示器 (可选)

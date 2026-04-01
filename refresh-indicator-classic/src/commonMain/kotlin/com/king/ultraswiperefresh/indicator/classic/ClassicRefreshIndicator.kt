@@ -1,0 +1,193 @@
+package com.king.ultraswiperefresh.indicator.classic
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.king.ultraswiperefresh.UltraSwipeFooterState
+import com.king.ultraswiperefresh.UltraSwipeHeaderState
+import com.king.ultraswiperefresh.UltraSwipeRefreshState
+import com.king.ultraswiperefresh.indicator.animationSpec
+import org.jetbrains.compose.resources.painterResource
+import ultraswiperefresh.refresh_indicator_classic.generated.resources.Res
+import ultraswiperefresh.refresh_indicator_classic.generated.resources.usr_classic_arrow
+import ultraswiperefresh.refresh_indicator_classic.generated.resources.usr_classic_spinner
+
+/**
+ * 经典样式的指示器
+ *
+ * @author <a href="mailto:jenly1314@gmail.com">Jenly</a>
+ * <p>
+ * <a href="https://github.com/jenly1314">Follow me</a>
+ */
+@Composable
+internal fun ClassicRefreshIndicator(
+    state: UltraSwipeRefreshState,
+    isFooter: Boolean,
+    tipContent: String,
+    tipTime: String,
+    modifier: Modifier = Modifier,
+    tipContentStyle: TextStyle = TextStyle.Default.copy(
+        fontSize = 15.sp,
+        color = Color(0xFF666666)
+    ),
+    tipTimeStyle: TextStyle = TextStyle.Default.copy(
+        fontSize = 12.sp,
+        color = Color(0xFF999999)
+    ),
+    tipTimeVisible: Boolean = true,
+    paddingValues: PaddingValues = PaddingValues(12.dp),
+    arrowIconPainter: Painter = painterResource(Res.drawable.usr_classic_arrow),
+    loadingIconPainter: Painter = painterResource(Res.drawable.usr_classic_spinner),
+    tipMinWidth: Dp = 100.dp,
+    iconSize: Dp = 24.dp,
+    iconColorFilter: ColorFilter? = null,
+    label: String = "Indicator"
+) {
+
+    val arrowDegrees = remember { Animatable(initialValue = 0f) }
+
+    val arrowTargetDegrees = if (isFooter) {
+        if (state.footerState == UltraSwipeFooterState.ReleaseToLoad) 0f else 180f
+    } else {
+        if (state.headerState == UltraSwipeHeaderState.ReleaseToRefresh) 180f else 0f
+    }
+    LaunchedEffect(arrowTargetDegrees) {
+        arrowDegrees.animateTo(targetValue = arrowTargetDegrees, animationSpec = animationSpec)
+    }
+
+    val targetAlpha by remember(isFooter, state) {
+        derivedStateOf {
+            if ((!isFooter && state.indicatorOffset > 0f) || (isFooter && state.indicatorOffset < 0f)) {
+                1f
+            } else {
+                0f
+            }
+        }
+    }
+
+    val alpha by animateFloatAsState(targetValue = targetAlpha, animationSpec = animationSpec)
+
+    val isInProgress by remember(isFooter, state) {
+        derivedStateOf {
+            if (isFooter) {
+                state.footerState == UltraSwipeFooterState.Loading && !state.isFinishing
+            } else {
+                state.headerState == UltraSwipeHeaderState.Refreshing && !state.isFinishing
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(paddingValues),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier.alpha(alpha),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AnimatedContent(
+                targetState = isInProgress,
+                transitionSpec = {
+                    (fadeIn(animationSpec) + scaleIn(animationSpec)).togetherWith(
+                        fadeOut(animationSpec) + scaleOut(animationSpec)
+                    )
+                },
+                label = label,
+            ) {
+                if (it) {
+                    val transition = rememberInfiniteTransition(label = "InfiniteTransition")
+                    val rotate by transition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = 360f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 1000, easing = LinearEasing)
+                        ),
+                        label = "RotateAnimation"
+                    )
+                    Image(
+                        painter = loadingIconPainter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(iconSize)
+                            .rotate(rotate),
+                        colorFilter = iconColorFilter,
+                    )
+
+                } else {
+                    Image(
+                        painter = arrowIconPainter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(iconSize)
+                            .rotate(arrowDegrees.value),
+                        colorFilter = iconColorFilter,
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .widthIn(min = tipMinWidth),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Crossfade(
+                    targetState = tipContent,
+                    animationSpec = animationSpec,
+                ) {
+                    BasicText(text = it, style = tipContentStyle)
+                }
+
+                if (tipTimeVisible) {
+                    Spacer(modifier = Modifier.size(2.dp))
+                    Crossfade(
+                        targetState = tipTime,
+                        animationSpec = animationSpec,
+                    ) {
+                        BasicText(text = it, style = tipTimeStyle)
+                    }
+                }
+            }
+        }
+    }
+}
